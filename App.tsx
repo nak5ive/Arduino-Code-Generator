@@ -10,16 +10,21 @@ import { CodeIcon, ZapIcon } from './components/Icons';
 
 export default function App() {
   const [prompt, setPrompt] = useState<string>('');
+  const [promptHistory, setPromptHistory] = useState<string[]>([]);
   const [generatedProject, setGeneratedProject] = useState<GeneratedProject | null>(null);
   const [generationPrompt, setGenerationPrompt] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = useCallback(async () => {
-    if (!prompt.trim()) {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) {
       setError('Please enter a description for your Arduino project.');
       return;
     }
+
+    // Add to history: prepend new prompt and remove any old duplicates
+    setPromptHistory(prev => [trimmedPrompt, ...prev.filter(p => p !== trimmedPrompt)]);
 
     setIsLoading(true);
     setError(null);
@@ -27,10 +32,10 @@ export default function App() {
     setGenerationPrompt('');
 
     try {
-      const result = await generateArduinoProject(prompt);
+      const result = await generateArduinoProject(trimmedPrompt);
       if (result && result.files && result.files.length > 0) {
         setGeneratedProject(result);
-        setGenerationPrompt(prompt);
+        setGenerationPrompt(trimmedPrompt);
       } else {
         setError('The model did not return any files. Please try refining your prompt.');
       }
@@ -46,6 +51,10 @@ export default function App() {
     if (generatedProject && generationPrompt) {
       createAndDownloadZip(generatedProject.files, generatedProject.projectName, generationPrompt);
     }
+  };
+
+  const handleHistoryClick = (historicalPrompt: string) => {
+    setPrompt(historicalPrompt);
   };
   
   const placeholderText = `Describe your Arduino project here. For example:
@@ -71,29 +80,51 @@ A project with external components that needs a wiring diagram:
 
       <main className="container mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Input Section */}
-        <div className="flex flex-col space-y-4">
-          <h2 className="text-xl font-semibold text-gray-100">1. Describe Your Project</h2>
-          <div className="bg-gray-800 rounded-lg border border-gray-700 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/50 transition-all duration-300">
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={placeholderText}
-              className="w-full h-96 bg-transparent text-gray-300 p-4 rounded-lg focus:outline-none resize-none placeholder:text-gray-500 font-mono text-sm leading-relaxed"
-              disabled={isLoading}
-            />
+        <div className="flex flex-col">
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-gray-100">1. Describe Your Project</h2>
+            <div className="bg-gray-800 rounded-lg border border-gray-700 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/50 transition-all duration-300">
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder={placeholderText}
+                className="w-full h-96 bg-transparent text-gray-300 p-4 rounded-lg focus:outline-none resize-none placeholder:text-gray-500 font-mono text-sm leading-relaxed"
+                disabled={isLoading}
+              />
+            </div>
+            <Button
+              onClick={handleGenerate}
+              disabled={isLoading || !prompt}
+              className="w-full"
+            >
+              {isLoading ? 'Generating...' : (
+                <>
+                  <ZapIcon className="w-5 h-5 mr-2" />
+                  Generate Project
+                </>
+              )}
+            </Button>
           </div>
-          <Button
-            onClick={handleGenerate}
-            disabled={isLoading || !prompt}
-            className="w-full"
-          >
-            {isLoading ? 'Generating...' : (
-              <>
-                <ZapIcon className="w-5 h-5 mr-2" />
-                Generate Project
-              </>
-            )}
-          </Button>
+
+          {promptHistory.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-300 mb-3">Recent Prompts</h3>
+              <div className="flex flex-col space-y-2">
+                {promptHistory.slice(0, 5).map((histPrompt, index) => ( // Show last 5 prompts
+                  <button
+                    key={index}
+                    onClick={() => handleHistoryClick(histPrompt)}
+                    className="text-left p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-md transition-colors duration-200 cursor-pointer w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    title={histPrompt} // Show full prompt on hover
+                  >
+                    <p className="text-sm text-gray-400 truncate">
+                      {histPrompt}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Output Section */}

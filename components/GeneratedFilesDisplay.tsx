@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { GeneratedFile } from '../types';
 
 interface GeneratedFilesDisplayProps {
@@ -7,17 +7,35 @@ interface GeneratedFilesDisplayProps {
 }
 
 const GeneratedFilesDisplay: React.FC<GeneratedFilesDisplayProps> = ({ files }) => {
-  const [activeFile, setActiveFile] = useState<string>(files.length > 0 ? files[0].filename : '');
+  const [activeFile, setActiveFile] = useState<string>('');
+
+  const sortedFiles = useMemo(() => {
+    const fileOrder = (filename: string): number => {
+      if (filename.endsWith('.ino')) return 0;
+      if (filename.toLowerCase() === 'wiring.txt') return 1;
+      if (filename.endsWith('.h')) return 2;
+      if (filename.endsWith('.cpp')) return 3;
+      return 4;
+    };
+
+    return [...files].sort((a, b) => {
+      const orderA = fileOrder(a.filename);
+      const orderB = fileOrder(b.filename);
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return a.filename.localeCompare(b.filename);
+    });
+  }, [files]);
 
   useEffect(() => {
-    // Reset active file if files array changes
-    if (files.length > 0) {
-      const mainInoFile = files.find(f => f.filename.endsWith('.ino'));
-      setActiveFile(mainInoFile ? mainInoFile.filename : files[0].filename);
+    // Set active file based on the first item in the sorted list
+    if (sortedFiles.length > 0) {
+      setActiveFile(sortedFiles[0].filename);
     } else {
       setActiveFile('');
     }
-  }, [files]);
+  }, [sortedFiles]);
   
   const selectedFile = files.find(f => f.filename === activeFile);
 
@@ -25,7 +43,7 @@ const GeneratedFilesDisplay: React.FC<GeneratedFilesDisplayProps> = ({ files }) 
     <div className="flex flex-col h-full bg-gray-800 rounded-lg overflow-hidden">
       <div className="flex-shrink-0 bg-gray-900/50 border-b border-gray-700">
         <div className="flex space-x-1 p-1 overflow-x-auto">
-          {files.map((file) => (
+          {sortedFiles.map((file) => (
             <button
               key={file.filename}
               onClick={() => setActiveFile(file.filename)}

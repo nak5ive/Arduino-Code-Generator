@@ -50,7 +50,11 @@ export default function App() {
   
   const placeholderText = `Describe your Arduino project here. For example:
 
-"Create a project for an Arduino Uno that blinks the built-in LED (pin 13) on and off. It should be on for 200ms and off for 800ms. Also, create a separate C++ class called 'LedManager' to encapsulate the pin number and blinking logic. The class should have a constructor to set the pin, a method to turn the LED on, a method to turn it off, and a 'blink' method that takes on-time and off-time as parameters."`;
+A simple project using the built-in LED:
+"Blink the built-in LED on an Arduino Uno. On for 200ms, off for 800ms. Use a separate C++ class 'LedManager' to handle the logic."
+
+A project with external components that needs a wiring diagram:
+"Design a traffic light with red, yellow, and green LEDs on pins 9, 10, and 11. Sequence: Green for 5s, Yellow for 2s, Red for 5s, and repeat."`;
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200 font-sans">

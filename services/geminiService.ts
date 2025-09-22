@@ -17,13 +17,13 @@ const projectSchema = {
     },
     files: {
       type: Type.ARRAY,
-      description: "An array of file objects representing the Arduino project.",
+      description: "An array of file objects representing the Arduino project. Should include a 'wiring.txt' with an ASCII art diagram if external components are used.",
       items: {
         type: Type.OBJECT,
         properties: {
           filename: {
             type: Type.STRING,
-            description: "The full name of the file, including the extension (e.g., 'projectName.ino', 'LedManager.h', 'LedManager.cpp'). The main file MUST match the projectName with a .ino extension."
+            description: "The full name of the file, including the extension (e.g., 'projectName.ino', 'LedManager.h', 'LedManager.cpp'). The main file MUST match the projectName with a .ino extension. If a wiring diagram is needed, it should be named 'wiring.txt'."
           },
           content: {
             type: Type.STRING,
@@ -44,6 +44,9 @@ Your task is to generate a complete, multi-file Arduino project based on a user'
 The project must be well-structured, with a main '.ino' file and separate '.h' and '.cpp' files for classes or libraries where appropriate.
 Ensure the code is clean, commented, and follows Arduino best practices.
 The main .ino file must have the same name as the 'projectName'.
+
+If the project requires any external hardware components (like LEDs, resistors, sensors, buttons, etc.), you MUST also generate a file named 'wiring.txt' that contains a simple, clear ASCII art wiring diagram showing how to connect the components to the Arduino. For projects that only use the Arduino's built-in LED (pin 13) and no other components, a wiring diagram is not necessary.
+
 You must output a JSON object that strictly adheres to the provided schema.`;
 
     const response = await ai.models.generateContent({

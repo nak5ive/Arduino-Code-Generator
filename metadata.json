@@ -1,0 +1,5 @@
+{
+  "name": "Arduino Code Generator",
+  "description": "An application that takes a natural language description of a coding task and generates a complete, downloadable Arduino project as a ZIP file.",
+  "requestFramePermissions": []
+}

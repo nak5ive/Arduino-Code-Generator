@@ -4,6 +4,9 @@
 declare global {
   var JSZip: any;
   var saveAs: (blob: Blob, filename: string) => void;
+  var Prism: {
+    highlightAll: () => void;
+  };
 }
 
 export interface GeneratedFile {

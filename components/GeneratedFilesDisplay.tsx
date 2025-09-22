@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { GeneratedFile } from '../types';
 import { CopyIcon, CheckIcon } from './Icons';
@@ -46,6 +45,30 @@ const GeneratedFilesDisplay: React.FC<GeneratedFilesDisplayProps> = ({ files }) 
 
   const selectedFile = files.find(f => f.filename === activeFile);
 
+  const languageClass = useMemo(() => {
+    if (!activeFile) return 'language-none';
+    const extension = activeFile.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'ino':
+      case 'cpp':
+      case 'h':
+        return 'language-cpp';
+      case 'txt':
+        return 'language-plaintext';
+      default:
+        return 'language-none';
+    }
+  }, [activeFile]);
+
+  useEffect(() => {
+    // When the selected file changes, re-run Prism's highlighting.
+    // Prism is loaded from a CDN, so we check if it's on the window object.
+    if (selectedFile && window.Prism) {
+      // Use a short timeout to ensure React has rendered the new content first.
+      setTimeout(() => window.Prism.highlightAll(), 0);
+    }
+  }, [selectedFile]);
+
   const handleCopy = () => {
     if (selectedFile?.content) {
       navigator.clipboard.writeText(selectedFile.content).then(() => {
@@ -81,7 +104,7 @@ const GeneratedFilesDisplay: React.FC<GeneratedFilesDisplayProps> = ({ files }) 
           ))}
         </div>
       </div>
-      <div className="flex-grow p-1 overflow-auto bg-gray-900/70 relative">
+      <div className="flex-grow overflow-auto bg-gray-900/70 relative">
         {selectedFile && (
            <button
             onClick={handleCopy}
@@ -101,8 +124,16 @@ const GeneratedFilesDisplay: React.FC<GeneratedFilesDisplayProps> = ({ files }) 
             )}
           </button>
         )}
-        <pre className="text-sm leading-relaxed whitespace-pre-wrap p-3 pt-4">
-          <code className="font-mono text-gray-300">
+        {/*
+          Prism's theme provides styling for the <pre> tag.
+          We override some styles for better integration:
+          - !bg-transparent: Use parent's background.
+          - !m-0: Remove default margins.
+          - !p-4: Set consistent padding.
+          The `key` attribute helps ensure React handles element updates correctly.
+        */}
+        <pre key={activeFile} className={`${languageClass} !bg-transparent !m-0 !p-4 h-full text-sm`}>
+          <code className={`${languageClass} font-mono`}>
             {selectedFile ? selectedFile.content : 'No file selected.'}
           </code>
         </pre>

@@ -11,6 +11,7 @@ import { CodeIcon, ZapIcon } from './components/Icons';
 export default function App() {
   const [prompt, setPrompt] = useState<string>('');
   const [generatedProject, setGeneratedProject] = useState<GeneratedProject | null>(null);
+  const [generationPrompt, setGenerationPrompt] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,11 +24,13 @@ export default function App() {
     setIsLoading(true);
     setError(null);
     setGeneratedProject(null);
+    setGenerationPrompt('');
 
     try {
       const result = await generateArduinoProject(prompt);
       if (result && result.files && result.files.length > 0) {
         setGeneratedProject(result);
+        setGenerationPrompt(prompt);
       } else {
         setError('The model did not return any files. Please try refining your prompt.');
       }
@@ -40,8 +43,8 @@ export default function App() {
   }, [prompt]);
 
   const handleDownload = () => {
-    if (generatedProject) {
-      createAndDownloadZip(generatedProject.files, generatedProject.projectName);
+    if (generatedProject && generationPrompt) {
+      createAndDownloadZip(generatedProject.files, generatedProject.projectName, generationPrompt);
     }
   };
   

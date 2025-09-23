@@ -6,7 +6,7 @@ import { createAndDownloadZip } from './utils/zipUtils';
 import Button from './components/Button';
 import Loader from './components/Loader';
 import GeneratedFilesDisplay from './components/GeneratedFilesDisplay';
-import { CodeIcon, ZapIcon } from './components/Icons';
+import { CodeIcon, ZapIcon, DownloadIcon } from './components/Icons';
 
 export default function App() {
   const [prompt, setPrompt] = useState<string>('');
@@ -78,11 +78,25 @@ A project with external components that needs a wiring diagram:
         </div>
       </header>
 
-      <main className="container mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <main className="container mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Input Section */}
-        <div className="flex flex-col">
+        <div className="flex flex-col lg:col-span-1">
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-100">1. Describe Your Project</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-100">Describe Your Project</h2>
+              <Button
+                onClick={handleGenerate}
+                disabled={isLoading || !prompt}
+                className="px-3 py-1.5 text-xs gap-2"
+              >
+                {isLoading ? 'Generating...' : (
+                  <>
+                    <ZapIcon className="w-4 h-4" />
+                    <span>Generate</span>
+                  </>
+                )}
+              </Button>
+            </div>
             <div className="bg-gray-800 rounded-lg border border-gray-700 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/50 transition-all duration-300">
               <textarea
                 value={prompt}
@@ -92,22 +106,10 @@ A project with external components that needs a wiring diagram:
                 disabled={isLoading}
               />
             </div>
-            <Button
-              onClick={handleGenerate}
-              disabled={isLoading || !prompt}
-              className="w-full"
-            >
-              {isLoading ? 'Generating...' : (
-                <>
-                  <ZapIcon className="w-5 h-5 mr-2" />
-                  Generate Project
-                </>
-              )}
-            </Button>
           </div>
 
           {promptHistory.length > 0 && (
-            <div className="mt-6">
+            <div className="mt-8">
               <h3 className="text-lg font-semibold text-gray-300 mb-3">Recent Prompts</h3>
               <div className="flex flex-col space-y-2">
                 {promptHistory.slice(0, 5).map((histPrompt, index) => ( // Show last 5 prompts
@@ -128,8 +130,23 @@ A project with external components that needs a wiring diagram:
         </div>
 
         {/* Output Section */}
-        <div className="flex flex-col space-y-4">
-          <h2 className="text-xl font-semibold text-gray-100">2. Generated Code</h2>
+        <div className="flex flex-col space-y-4 lg:col-span-2">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-100">Generated Code</h2>
+            <Button
+              onClick={handleDownload}
+              className="px-3 py-1.5 text-xs gap-2"
+              disabled={!generatedProject}
+              aria-label={generatedProject ? `Download ${generatedProject.projectName}.zip` : "Download project zip"}
+            >
+              <DownloadIcon className="w-4 h-4" />
+              <span>
+                {generatedProject
+                  ? `${generatedProject.projectName}.zip`
+                  : 'project.zip'}
+              </span>
+            </Button>
+          </div>
           <div className="bg-gray-800 rounded-lg border border-gray-700 min-h-[510px] flex flex-col p-4">
             {isLoading && <Loader />}
             {error && (
@@ -148,11 +165,6 @@ A project with external components that needs a wiring diagram:
             {generatedProject && (
               <div className="flex flex-col h-full">
                 <GeneratedFilesDisplay files={generatedProject.files} />
-                <div className="mt-4 pt-4 border-t border-gray-700">
-                  <Button onClick={handleDownload} className="w-full">
-                    Download {generatedProject.projectName}.zip
-                  </Button>
-                </div>
               </div>
             )}
           </div>
